@@ -1,0 +1,241 @@
+<!-- aghsat/templates/aghsat/create_installment.html -->
+
+{% extends 'aghsat/base.html' %}
+
+{% block title %}تعریف قسط جدید{% endblock %}
+
+{% block extra_css %}
+<style>
+    .installment-row {
+        background: #f8f9fa;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border-right: 4px solid #007bff;
+        position: relative;
+    }
+    
+    .installment-number {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #007bff;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    
+    .remove-installment {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+    }
+    
+    .add-installment-btn {
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle"></i>
+                        تعریف قسط جدید
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="installmentForm">
+                        {% csrf_token %}
+                        
+                        <!-- اطلاعات مشتری -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">اطلاعات مشتری</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ customer_form.first_name.label_tag }}
+                                        {{ customer_form.first_name }}
+                                        {% if customer_form.first_name.errors %}
+                                            <div class="text-danger">{{ customer_form.first_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        {{ customer_form.last_name.label_tag }}
+                                        {{ customer_form.last_name }}
+                                        {% if customer_form.last_name.errors %}
+                                            <div class="text-danger">{{ customer_form.last_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        {{ customer_form.mobile.label_tag }}
+                                        {{ customer_form.mobile }}
+                                        {% if customer_form.mobile.errors %}
+                                            <div class="text-danger">{{ customer_form.mobile.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        {{ customer_form.line_sold.label_tag }}
+                                        {{ customer_form.line_sold }}
+                                        {% if customer_form.line_sold.errors %}
+                                            <div class="text-danger">{{ customer_form.line_sold.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- اقساط -->
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">اقساط</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="installments-container">
+                                    <!-- قسط اول به صورت پیش‌فرض -->
+                                    <div class="installment-row" data-index="0">
+                                        <div class="installment-number">1</div>
+                                        <div class="row" style="margin-right: 40px;">
+                                            <div class="col-md-6 mb-3">
+                                                <label>مبلغ قسط (تومان)</label>
+                                                <input type="number" 
+                                                       name="amount_0" 
+                                                       class="form-control" 
+                                                       placeholder="مثال: 500000"
+                                                       required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label>تاریخ پرداخت (شمسی)</label>
+                                                <input type="text" 
+                                                       name="payment_date_0" 
+                                                       class="form-control jalali-datepicker" 
+                                                       placeholder="1404/01/01"
+                                                       required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="button" 
+                                        class="btn btn-success add-installment-btn" 
+                                        id="addInstallment">
+                                    <i class="fas fa-plus"></i>
+                                    افزودن قسط جدید
+                                </button>
+                                
+                                <input type="hidden" name="installment_count" id="installmentCount" value="1">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i>
+                                ثبت اطلاعات
+                            </button>
+                            <a href="{% url 'customer_list' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i>
+                                انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let installmentIndex = 1;
+
+document.getElementById('addInstallment').addEventListener('click', function() {
+    const container = document.getElementById('installments-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'installment-row';
+    newRow.setAttribute('data-index', installmentIndex);
+    
+    newRow.innerHTML = `
+        <div class="installment-number">${installmentIndex + 1}</div>
+        <button type="button" class="btn btn-danger btn-sm remove-installment" onclick="removeInstallment(this)">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="row" style="margin-right: 40px;">
+            <div class="col-md-6 mb-3">
+                <label>مبلغ قسط (تومان)</label>
+                <input type="number" 
+                       name="amount_${installmentIndex}" 
+                       class="form-control" 
+                       placeholder="مثال: 500000"
+                       required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>تاریخ پرداخت (شمسی)</label>
+                <input type="text" 
+                       name="payment_date_${installmentIndex}" 
+                       class="form-control jalali-datepicker" 
+                       placeholder="1404/01/01"
+                       required>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(newRow);
+    installmentIndex++;
+    updateInstallmentCount();
+    
+    // راه‌اندازی datepicker برای فیلد جدید
+    initializeDatepickers();
+});
+
+function removeInstallment(button) {
+    if (document.querySelectorAll('.installment-row').length > 1) {
+        button.closest('.installment-row').remove();
+        updateInstallmentNumbers();
+        updateInstallmentCount();
+    } else {
+        alert('حداقل یک قسط باید وجود داشته باشد');
+    }
+}
+
+function updateInstallmentNumbers() {
+    const rows = document.querySelectorAll('.installment-row');
+    rows.forEach((row, index) => {
+        row.querySelector('.installment-number').textContent = index + 1;
+    });
+}
+
+function updateInstallmentCount() {
+    document.getElementById('installmentCount').value = document.querySelectorAll('.installment-row').length;
+}
+
+// تابع راه‌اندازی datepicker
+function initializeDatepickers() {
+    const datepickers = document.querySelectorAll('.jalali-datepicker');
+    datepickers.forEach(input => {
+        if (!input.dataset.initialized) {
+            // اینجا می‌توانید از کتابخانه datepicker دلخواه استفاده کنید
+            // مثال: persian-datepicker یا کتابخانه‌های دیگر
+            input.dataset.initialized = 'true';
+        }
+    });
+}
+
+// اجرای اولیه
+initializeDatepickers();
+</script>
+{% endblock %}

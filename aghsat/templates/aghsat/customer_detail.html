@@ -1,0 +1,227 @@
+<!-- aghsat/templates/aghsat/customer_detail.html -->
+
+{% extends 'aghsat/base.html' %}
+{% load humanize %}
+{% load jformat %}
+
+{% block title %}جزئیات {{ customer.name }} - سوگند اقساط{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-2">
+                <i class="fas fa-user-circle text-primary"></i>
+                جزئیات مشتری
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'customer_list' %}">لیست مشتریان</a></li>
+                    <li class="breadcrumb-item active">{{ customer.name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'customer_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت به لیست
+            </a>
+        </div>
+    </div>
+    
+    <!-- Customer Info Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        اطلاعات مشتری
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="150"><i class="fas fa-user text-primary"></i> نام و نام خانوادگی:</th>
+                                    <td><strong>{{ customer.name }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-phone text-success"></i> شماره موبایل:</th>
+                                    <td><strong>{{ customer.mobile }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-calendar-alt text-info"></i> تاریخ ثبت:</th>
+                                    <td>{{ customer.created_at|jformat:"%Y/%m/%d - %H:%M" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info mb-0">
+                                <h6><i class="fas fa-chart-pie"></i> آمار اقساط:</h6>
+                                <ul class="mb-0">
+                                    <li>تعداد کل اقساط: <strong>{{ installments.count }}</strong></li>
+                                    <li>پرداخت شده: <strong class="text-success">{{ paid_count }}</strong></li>
+                                    <li>پرداخت نشده: <strong class="text-danger">{{ unpaid_count }}</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Installments List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-ul"></i>
+                        لیست اقساط
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if installments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="50">#</th>
+                                        <th>مبلغ</th>
+                                        <th>تاریخ سررسید</th>
+                                        <th>وضعیت</th>
+                                        <th>یادآوری</th>
+                                        <th width="200">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for installment in installments %}
+                                    <tr class="{% if not installment.is_paid %}table-warning{% endif %}">
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            <strong>{{ installment.amount|floatformat:0|intcomma }}</strong>
+                                            تومان
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-calendar text-muted"></i>
+                                            {{ installment.payment_date }}
+                                        </td>
+                                        <td>
+                                            {% if installment.is_paid %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check"></i>
+                                                    پرداخت شده
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-clock"></i>
+                                                    پرداخت نشده
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if installment.reminder_sent %}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                    ارسال شده
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-times"></i>
+                                                    ارسال نشده
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <form method="post" action="{% url 'toggle_payment_status' installment.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                {% if installment.is_paid %}
+                                                    <button type="submit" class="btn btn-sm btn-warning" title="علامت زدن به عنوان پرداخت نشده">
+                                                        <i class="fas fa-undo"></i>
+                                                        پرداخت نشده
+                                                    </button>
+                                                {% else %}
+                                                    <button type="submit" class="btn btn-sm btn-success" title="علامت زدن به عنوان پرداخت شده">
+                                                        <i class="fas fa-check"></i>
+                                                        پرداخت شد
+                                                    </button>
+                                                {% endif %}
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th colspan="5" class="text-end">جمع کل:</th>
+                                        <th>
+                                            <strong class="text-primary">
+                                                {{ total_amount|floatformat:0|intcomma }}
+                                            </strong>
+                                            تومان
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="5" class="text-end">پرداخت شده:</th>
+                                        <th>
+                                            <strong class="text-success">
+                                                {{ paid_amount|floatformat:0|intcomma }}
+                                            </strong>
+                                            تومان
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="5" class="text-end">باقیمانده:</th>
+                                        <th>
+                                            <strong class="text-danger">
+                                                {{ remaining_amount|floatformat:0|intcomma }}
+                                            </strong>
+                                            تومان
+                                        </th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning text-center">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                            <h5>هیچ قسطی برای این مشتری ثبت نشده است!</h5>
+                            <a href="{% url 'create_installment' %}" class="btn btn-primary mt-3">
+                                <i class="fas fa-plus"></i>
+                                افزودن قسط جدید
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table th {
+        font-weight: 600;
+    }
+    
+    .badge {
+        padding: 6px 12px;
+        font-size: 0.875rem;
+    }
+    
+    .btn-sm {
+        padding: 4px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .breadcrumb {
+        background: transparent;
+        margin: 0;
+        padding: 0;
+    }
+</style>
+{% endblock %}

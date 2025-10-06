@@ -1,0 +1,176 @@
+<!-- aghsat/templates/aghsat/dashboard.html -->
+
+{% extends 'aghsat/base.html' %}
+
+{% block title %}داشبورد - سوگند اقساط{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-0">
+                <i class="fas fa-chart-line text-primary"></i>
+                داشبورد
+            </h2>
+            <p class="text-muted">خلاصه اطلاعات سیستم</p>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row">
+        <!-- تعداد مشتریان -->
+        <div class="col-md-3">
+            <div class="card border-right-primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-muted mb-2">تعداد مشتریان</div>
+                            <div class="h2 mb-0 font-weight-bold text-primary">
+                                {{ total_customers }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-3x text-primary opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- تعداد اقساط -->
+        <div class="col-md-3">
+            <div class="card border-right-success">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-muted mb-2">کل اقساط</div>
+                            <div class="h2 mb-0 font-weight-bold text-success">
+                                {{ total_installments }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-invoice-dollar fa-3x text-success opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- اقساط پرداخت نشده -->
+        <div class="col-md-3">
+            <div class="card border-right-warning">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-muted mb-2">پرداخت نشده</div>
+                            <div class="h2 mb-0 font-weight-bold text-warning">
+                                {{ unpaid_installments }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-3x text-warning opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- اقساط امروز -->
+        <div class="col-md-3">
+            <div class="card border-right-danger">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-muted mb-2">سررسید امروز</div>
+                            <div class="h2 mb-0 font-weight-bold text-danger">
+                                {{ today_installments }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-day fa-3x text-danger opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt"></i>
+                        دسترسی سریع
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'create_installment' %}" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-plus-circle"></i>
+                                افزودن مشتری و قسط جدید
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'customer_list' %}" class="btn btn-info btn-lg w-100">
+                                <i class="fas fa-list"></i>
+                                مشاهده لیست مشتریان
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-warning btn-lg w-100" onclick="alert('این قابلیت به زودی اضافه می‌شود')">
+                                <i class="fas fa-bell"></i>
+                                یادآورهای امروز
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- اقساط فردا -->
+    {% if tomorrow_installments > 0 %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>توجه:</strong>
+                فردا {{ tomorrow_installments }} قسط سررسید دارد که یادآوری پیامکی برای آنها ارسال خواهد شد.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<form method="post" action="{% url 'test_reminders' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning">
+        <i class="fas fa-paper-plane"></i>
+        تست ارسال یادآوری‌ها
+    </button>
+</form>
+<style>
+    .border-right-primary {
+        border-right: 4px solid #007bff;
+    }
+    
+    .border-right-success {
+        border-right: 4px solid #28a745;
+    }
+    
+    .border-right-warning {
+        border-right: 4px solid #ffc107;
+    }
+    
+    .border-right-danger {
+        border-right: 4px solid #dc3545;
+    }
+    
+    .opacity-25 {
+        opacity: 0.25;
+    }
+</style>
+{% endblock %}

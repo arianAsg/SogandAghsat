@@ -1,0 +1,31 @@
+<!-- aghsat/templates/aghsat/login.html -->
+
+{% extends 'aghsat/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body p-5">
+                <h3 class="text-center mb-4">
+                    <i class="bi bi-wallet2"></i> ورود به سیستم
+                </h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">نام کاربری</label>
+                        <input type="text" class="form-control" name="username" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">رمز عبور</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-box-arrow-in-right"></i> ورود
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

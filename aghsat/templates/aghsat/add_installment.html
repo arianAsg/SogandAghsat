@@ -1,0 +1,63 @@
+<!-- aghsat/templates/aghsat/add_installment.html -->
+
+{% extends 'aghsat/base.html' %}
+
+{% block content %}
+<h2 class="mb-4">تعریف لیست اقساط</h2>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <h5 class="mb-3">اطلاعات مشتری</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ customer_form.first_name.label }}</label>
+                    {{ customer_form.first_name }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ customer_form.last_name.label }}</label>
+                    {{ customer_form.last_name }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ customer_form.mobile.label }}</label>
+                    {{ customer_form.mobile }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ customer_form.line_sold.label }}</label>
+                    {{ customer_form.line_sold }}
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <h5 class="mb-3">اطلاعات قسط</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ installment_form.amount.label }}</label>
+                    {{ installment_form.amount }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ installment_form.payment_date.label }}</label>
+                    {{ installment_form.payment_date }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check mt-4">
+                        {{ installment_form.is_paid }}
+                        <label class="form-check-label">
+                            پرداخت شده
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-success btn-lg mt-3">
+                <i class="bi bi-check-circle"></i> ذخیره
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
