@@ -96,7 +96,7 @@
                                         <th>تاریخ سررسید</th>
                                         <th>وضعیت</th>
                                         <th>یادآوری</th>
-                                        <th width="200">عملیات</th>
+                                        <th width="300">عملیات</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -138,20 +138,35 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <form method="post" action="{% url 'toggle_payment_status' installment.id %}" style="display: inline;">
-                                                {% csrf_token %}
-                                                {% if installment.is_paid %}
-                                                    <button type="submit" class="btn btn-sm btn-warning" title="علامت زدن به عنوان پرداخت نشده">
-                                                        <i class="fas fa-undo"></i>
-                                                        پرداخت نشده
-                                                    </button>
-                                                {% else %}
-                                                    <button type="submit" class="btn btn-sm btn-success" title="علامت زدن به عنوان پرداخت شده">
-                                                        <i class="fas fa-check"></i>
-                                                        پرداخت شد
-                                                    </button>
-                                                {% endif %}
-                                            </form>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <!-- Toggle Payment -->
+                                                <form method="post" action="{% url 'toggle_payment_status' installment.pk %}" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    {% if installment.is_paid %}
+                                                        <button type="submit" class="btn btn-warning" title="علامت زدن به عنوان پرداخت نشده">
+                                                            <i class="fas fa-undo"></i>
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-success" title="علامت زدن به عنوان پرداخت شده">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                </form>
+                                                
+                                                <!-- Edit Button -->
+                                                <a href="{% url 'edit_installment' installment.pk %}" 
+                                                   class="btn btn-primary" 
+                                                   title="ویرایش قسط">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                
+                                                <!-- Delete Button -->
+                                                <a href="{% url 'delete_installment' installment.pk %}" 
+                                                   class="btn btn-danger" 
+                                                   title="حذف قسط">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -222,6 +237,10 @@
         background: transparent;
         margin: 0;
         padding: 0;
+    }
+    
+    .btn-group .btn {
+        margin: 0 2px;
     }
 </style>
 {% endblock %}

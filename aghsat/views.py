@@ -4,17 +4,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from .models import Customer, Installment
-from .forms import CustomerForm, InstallmentForm
-import jdatetime
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.db.models import Sum, Q, Count
-from django.utils import timezone
 from datetime import timedelta
+import jdatetime
+
 from .models import Customer, Installment
 from .forms import CustomerForm, InstallmentForm
+from .sms_service import send_tomorrow_reminders
+
 
 def user_login(request):
     """صفحه ورود"""
@@ -141,6 +138,7 @@ def customer_list(request):
     }
     return render(request, 'aghsat/customer_list.html', context)
 
+
 @login_required
 def customer_detail(request, pk):
     """نمایش جزئیات یک مشتری و اقساط او"""
@@ -168,18 +166,17 @@ def customer_detail(request, pk):
     return render(request, 'aghsat/customer_detail.html', context)
 
 
-
 @login_required
-def edit_installment(request, installment_id):
+def edit_installment(request, pk):
     """ویرایش قسط"""
-    installment = get_object_or_404(Installment, id=installment_id)
+    installment = get_object_or_404(Installment, pk=pk)
     
     if request.method == 'POST':
         form = InstallmentForm(request.POST, instance=installment)
         if form.is_valid():
             form.save()
             messages.success(request, 'قسط با موفقیت ویرایش شد')
-            return redirect('customer_detail', customer_id=installment.customer.id)
+            return redirect('customer_detail', pk=installment.customer.pk)
     else:
         form = InstallmentForm(instance=installment)
     
@@ -192,27 +189,33 @@ def edit_installment(request, installment_id):
 
 
 @login_required
-def delete_installment(request, installment_id):
+def delete_installment(request, pk):
     """حذف قسط"""
-    installment = get_object_or_404(Installment, id=installment_id)
-    customer_id = installment.customer.id
-    installment.delete()
-    messages.success(request, 'قسط با موفقیت حذف شد')
-    return redirect('customer_detail', customer_id=customer_id)
+    installment = get_object_or_404(Installment, pk=pk)
+    customer_pk = installment.customer.pk
+    
+    if request.method == 'POST':
+        installment.delete()
+        messages.success(request, 'قسط با موفقیت حذف شد')
+        return redirect('customer_detail', pk=customer_pk)
+    
+    context = {
+        'installment': installment,
+    }
+    return render(request, 'aghsat/delete_installment.html', context)
 
 
 @login_required
-def toggle_payment_status(request, installment_id):
+def toggle_payment_status(request, pk):
     """تغییر وضعیت پرداخت قسط"""
-    installment = get_object_or_404(Installment, id=installment_id)
+    installment = get_object_or_404(Installment, pk=pk)
     installment.is_paid = not installment.is_paid
     installment.save()
     
     status = 'پرداخت شده' if installment.is_paid else 'پرداخت نشده'
     messages.success(request, f'وضعیت قسط به "{status}" تغییر کرد')
     
-    return redirect('customer_detail', customer_id=installment.customer.id)
-
+    return redirect('customer_detail', pk=installment.customer.pk)
 
 
 @login_required
