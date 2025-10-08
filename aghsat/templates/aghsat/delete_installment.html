@@ -1,0 +1,61 @@
+<!-- aghsat/templates/aghsat/delete_installment.html -->
+
+{% extends 'aghsat/base.html' %}
+{% load humanize %}
+
+{% block title %}حذف قسط - سوگند اقساط{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-trash-alt"></i>
+                        حذف قسط
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        آیا مطمئن هستید که می‌خواهید این قسط را حذف کنید؟
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5>جزئیات قسط:</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>مشتری:</strong> {{ installment.customer.name }}</li>
+                                <li><strong>مبلغ:</strong> {{ installment.amount|floatformat:0|intcomma }} تومان</li>
+                                <li><strong>تاریخ سررسید:</strong> {{ installment.payment_date }}</li>
+                                <li><strong>وضعیت:</strong> 
+                                    {% if installment.is_paid %}
+                                        <span class="badge bg-success">پرداخت شده</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">پرداخت نشده</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i>
+                                بله، حذف شود
+                            </button>
+                            <a href="{% url 'customer_detail' installment.customer.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right"></i>
+                                انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
