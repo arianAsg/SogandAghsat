@@ -39,6 +39,11 @@
     .add-installment-btn {
         margin-top: 20px;
     }
+    
+    .formatted-input {
+        text-align: left;
+        direction: ltr;
+    }
 </style>
 {% endblock %}
 
@@ -112,11 +117,13 @@
                                         <div class="row" style="margin-right: 40px;">
                                             <div class="col-md-6 mb-3">
                                                 <label>مبلغ قسط (تومان)</label>
-                                                <input type="number" 
+                                                <input type="text" 
                                                        name="amount_0" 
-                                                       class="form-control" 
-                                                       placeholder="مثال: 500000"
-                                                       required>
+                                                       class="form-control formatted-input amount-input" 
+                                                       placeholder="مثال: 500,000"
+                                                       required
+                                                       data-original-value="">
+                                                <small class="text-muted">اعداد خودکار فرمت می‌شوند</small>
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label>تاریخ پرداخت (شمسی)</label>
@@ -163,6 +170,76 @@
 <script>
 let installmentIndex = 1;
 
+// ==================== توابع فرمت‌دهی عدد ====================
+
+function formatNumber(value) {
+    // حذف همه چیز به جز اعداد
+    let num = value.replace(/[^\d]/g, '');
+    
+    if (num === '') return '';
+    
+    // تبدیل به عدد و اضافه کردن کاما
+    return parseInt(num).toLocaleString('en-US');
+}
+
+function unformatNumber(value) {
+    return value.replace(/,/g, '');
+}
+
+function attachAmountFormatter(input) {
+    if (!input || input.dataset.formatterAttached) return;
+    
+    // علامت‌گذاری که formatter نصب شده
+    input.dataset.formatterAttached = 'true';
+    
+    // اگر مقدار اولیه داشت، فرمت کن
+    if (input.value) {
+        input.value = formatNumber(input.value);
+    }
+    
+    // هنگام تایپ
+    input.addEventListener('input', function(e) {
+        let cursorPosition = this.selectionStart;
+        let oldLength = this.value.length;
+        
+        // فرمت کردن
+        let formatted = formatNumber(this.value);
+        
+        // ذخیره مقدار واقعی
+        this.dataset.originalValue = unformatNumber(formatted);
+        
+        // به‌روزرسانی نمایش
+        this.value = formatted;
+        
+        // محاسبه موقعیت جدید کرسر
+        let newLength = this.value.length;
+        let diff = newLength - oldLength;
+        
+        if (diff > 0) {
+            cursorPosition += diff;
+        }
+        
+        // تنظیم موقعیت کرسر
+        this.setSelectionRange(cursorPosition, cursorPosition);
+    });
+    
+    // هنگام فوکوس
+    input.addEventListener('focus', function() {
+        if (this.value) {
+            this.value = formatNumber(this.value);
+        }
+    });
+}
+
+function initializeAllAmountInputs() {
+    const amountInputs = document.querySelectorAll('.amount-input');
+    amountInputs.forEach(input => {
+        attachAmountFormatter(input);
+    });
+}
+
+// ==================== مدیریت اقساط ====================
+
 document.getElementById('addInstallment').addEventListener('click', function() {
     const container = document.getElementById('installments-container');
     const newRow = document.createElement('div');
@@ -177,11 +254,13 @@ document.getElementById('addInstallment').addEventListener('click', function() {
         <div class="row" style="margin-right: 40px;">
             <div class="col-md-6 mb-3">
                 <label>مبلغ قسط (تومان)</label>
-                <input type="number" 
+                <input type="text" 
                        name="amount_${installmentIndex}" 
-                       class="form-control" 
-                       placeholder="مثال: 500000"
-                       required>
+                       class="form-control formatted-input amount-input" 
+                       placeholder="مثال: 500,000"
+                       required
+                       data-original-value="">
+                <small class="text-muted">اعداد خودکار فرمت می‌شوند</small>
             </div>
             <div class="col-md-6 mb-3">
                 <label>تاریخ پرداخت (شمسی)</label>
@@ -197,6 +276,10 @@ document.getElementById('addInstallment').addEventListener('click', function() {
     container.appendChild(newRow);
     installmentIndex++;
     updateInstallmentCount();
+    
+    // اعمال formatter به فیلد جدید
+    const newAmountInput = newRow.querySelector('.amount-input');
+    attachAmountFormatter(newAmountInput);
     
     // راه‌اندازی datepicker برای فیلد جدید
     initializeDatepickers();
@@ -235,8 +318,22 @@ function initializeDatepickers() {
     });
 }
 
-// اجرای اولیه
-initializeDatepickers();
+// ==================== رویداد سابمیت فرم ====================
+
+document.getElementById('installmentForm').addEventListener('submit', function(e) {
+    // قبل از ارسال، همه کاماها رو از فیلدهای مبلغ حذف کن
+    const amountInputs = document.querySelectorAll('.amount-input');
+    amountInputs.forEach(input => {
+        input.value = unformatNumber(input.value);
+    });
+});
+
+// ==================== اجرای اولیه ====================
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAllAmountInputs();
+    initializeDatepickers();
+});
 </script>
 
 {% endblock %}

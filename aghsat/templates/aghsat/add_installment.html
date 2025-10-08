@@ -39,6 +39,7 @@
                 <div class="col-md-4 mb-3">
                     <label class="form-label">{{ installment_form.amount.label }}</label>
                     {{ installment_form.amount }}
+                    <small class="text-muted d-block mt-1">اعداد به صورت خودکار فرمت می‌شوند</small>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">{{ installment_form.payment_date.label }}</label>
@@ -60,4 +61,66 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تابع فرمت‌دهی عدد با کاما
+    function formatNumber(value) {
+        // حذف همه چیز به جز اعداد
+        let num = value.replace(/[^\d]/g, '');
+        
+        if (num === '') return '';
+        
+        // تبدیل به عدد و اضافه کردن کاما
+        return parseInt(num).toLocaleString('en-US');
+    }
+    
+    // تابع حذف فرمت (برای ارسال به سرور)
+    function unformatNumber(value) {
+        return value.replace(/,/g, '');
+    }
+    
+    // اعمال فرمت به فیلد مبلغ
+    const amountInput = document.querySelector('input[name="amount"]');
+    
+    if (amountInput) {
+        // اگر مقدار اولیه داشت، فرمت کن
+        if (amountInput.value) {
+            amountInput.value = formatNumber(amountInput.value);
+        }
+        
+        // هنگام تایپ
+        amountInput.addEventListener('input', function(e) {
+            let cursorPosition = this.selectionStart;
+            let oldLength = this.value.length;
+            let oldValue = this.value;
+            
+            // فرمت کردن
+            let formatted = formatNumber(this.value);
+            this.value = formatted;
+            
+            // محاسبه موقعیت جدید کرسر
+            let newLength = this.value.length;
+            let diff = newLength - oldLength;
+            
+            // اگر کاراکتر اضافه شد (کاما)
+            if (diff > 0) {
+                cursorPosition += diff;
+            }
+            
+            // تنظیم موقعیت کرسر
+            this.setSelectionRange(cursorPosition, cursorPosition);
+        });
+        
+        // قبل از سابمیت فرم
+        const form = amountInput.closest('form');
+        form.addEventListener('submit', function(e) {
+            // حذف کاماها برای ارسال به سرور
+            amountInput.value = unformatNumber(amountInput.value);
+        });
+    }
+});
+</script>
 {% endblock %}
